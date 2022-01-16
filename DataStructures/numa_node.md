@@ -22,6 +22,26 @@ In our example, the left node is local to CPU 1 and 2. Accessing from local node
 
 Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and supports to NUMA architecture is added to Linux.  
 
+## How Linux manages nodes
+in Linux, a NUMA node is represented in struct pglist_data (or pg_data_t). On UMA (CONFIG_NUMA is not defined), it always has global contig_page_data variable. On NUMA, there is architecture-specific arrays of pglist_data. in both cases, NODE_DATA(nid) can be used to access proper node descriptor. (nid is node id)
+
+```c
+#ifndef CONFIG_NUMA
+
+extern struct pglist_data contig_page_data;
+static inline struct pglist_data *NODE_DATA(int nid)
+{
+        return &contig_page_data;
+}
+#define NODE_MEM_MAP(nid)       mem_map
+
+#else /* CONFIG_NUMA */
+
+#include <asm/mmzone.h>
+
+#endif /* !CONFIG_NUMA */
+```
+
 ## struct pgdata_list
 
 a NUMA node is represented in struct pgdata_list (or pg_data_t) in linux. it's defined in include/linux/mmzone.h:
