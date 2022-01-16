@@ -186,3 +186,4 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 	atomic_long_t		vm_stat[NR_VM_NODE_STAT_ITEMS];
 } pg_data_t;
 ```
+These two fields are used to describe statistics of a node. it's useful to monitor how the memory is used. lets read /proc/meminfo for example. it's based on these statistics fields.
