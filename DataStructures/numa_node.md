@@ -5,7 +5,17 @@ This document is WIP; Some fields are not explained yet.
 ## NUMA node
 
 ## What is NUMA Architecture?
-NUMA is acronym of Non-Uniform Memory Access. When we say a computer system is based on NUMA Architecture, it means that access latency of system memory is not uniform across the system. in NUMA architecture, set of memory that has same access property is called a "Node".
+Usual PCs have only one memory bus. That's true for the author's PC and maybe yours too. It's called UMA (Uniform Memory Access) architecture, which means that all pieces of memory has same access latency.
+
+![UMA with single CPUs](images/single_cpu_uma.png)
+
+Main problem of such system is that it does not scale as number of cpus increases. Let's say, we have 32 CPUs in a single computer. As a memory bus can communicate with a single CPU simulatenously, Other 31 CPUs should always just wait. That's significant performance penalty when a workload is memory-intensive.  
+
+![UMA with multiple CPUs](images/numa_increased_bus_length.png)
+
+One solution to this problem is to impelment multiple memory buses. It's called NUMA (Non-Uniform Memory Access).
+
+In 1990-2000s, NUMA architecture 
 
 ![NUMA.png](images/NUMA.png)
 
