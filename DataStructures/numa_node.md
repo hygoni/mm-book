@@ -18,11 +18,13 @@ Let's say, we have 32 CPUs in a single computer. As a memory bus can communicate
 
 One solution to this problem is to impelment multiple memory buses. It's called NUMA (Non-Uniform Memory Access). As it has multiple memory controller and buses, only some of cpus share a memory bus. The set of CPU(s) and memory is called "NUMA node". The memory thoughput can scale with number of CPUs if we increase number of NUMA nodes.
 
+In our example, the left node is local to CPU 1 and 2. Accessing from local node is fastest. If CPU 1 and 2 allocate memory from right node (remote node), they have to access through "interconnect", which increases latency so much. So the page allocator tries to allocate pages from local node as possible.  
+
 Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and supports to NUMA architecture is added to Linux.  
 
 ## struct pgdata_list
 
-a node is represented in struct pgdata_list (or pg_data_t) in linux. it's defined in include/linux/mmzone.h:
+a NUMA node is represented in struct pgdata_list (or pg_data_t) in linux. it's defined in include/linux/mmzone.h:
 
 ```c
 /*
