@@ -1,6 +1,6 @@
 ## Work in progress
 
-This is WIP;
+This document is WIP;
 
 ## NUMA node
 
@@ -9,7 +9,7 @@ NUMA is acronym of Non-Uniform Memory Access. when a computer system is based on
 
 ![NUMA.png](images/NUMA.png)
 
-For example, let's say we have CPU 1, 2 and Node 1, 2. then Node 1 is local to CPU 1, and Node 2 is local to CPU 2. in CPU 1's perspective, accessing Node 1 is much faster than Node 2 because Node 2 is remote node. when the CPU accesses to remote node, there is some of performance penalty because it has to access them through "interconnect".
+For example, let's say we have CPU 1, 2 and Node 1, 2. Node 1 is local to CPU 1, and Node 2 is local to CPU 2. in CPU 1's perspective, accessing Node 1 is much faster than Node 2 because Node 2 is remote node. when the CPU accesses to remote node, there is some of performance penalty because it has to access them through "interconnect".
 
 Managing NUMA node in MM subsystem is important because allocating remote node's memory can result in poor performance in NUMA architecture.
 
@@ -38,7 +38,7 @@ typedef struct pglist_data {
 	 */
 	struct zone node_zones[MAX_NR_ZONES];
 ```
-
+### Priority of zones on allocation
 As explained above, node is a set of memory that has same access property. But sometimes we need to separate memories based on different (not a access speed) properties. So for every nodes, we can separate regions of node if needed. that's called a "zone".
 
 ```c
@@ -54,12 +54,15 @@ When the page allocator allocates page(s), we can specify priorities of zones. f
 
 As ZONE_DMA{,32} is reserved for specific purpose, we should avoid allocating from them as long as possible. By specifying node_zoneslists to {ZONE_NORMAL, ZONE_DMA32, ZONE_DMA}, we can avoid allocating from ZONE_DMA{,32} when we have enough memory. (But the page allocator will try to allocate pages from ZONE_DMA32 and ZONE_DMA when it can't allocate from ZONE_NORMAL.) 
 
+### Number of zones
+
 ```c
 	int nr_zones; /* number of populated zones in this node */
 ```
 
 We **can** split a node into multiple zones, but we **don't have to**. a node can have 1+ zones. the number of zones in a node is specified in nr_zones.
 
+### Array of pages for each node, and page extension
 ```c
 #ifdef CONFIG_FLATMEM	/* means !SPARSEMEM */
 	struct page *node_mem_map;
@@ -73,6 +76,7 @@ FLATMEM and memory models will be discussed later. To be brief, pages are manage
 
 PAGE_EXTENSION is used when page extension feature enabled on 32-bit machines; By its nature, 32-bit machines can have up to 4GB of memory. But it can have more than 4GB with page extension.
 
+### Pages can be added/removed after boot
 ```c
 #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
 	/*
@@ -93,7 +97,7 @@ PAGE_EXTENSION is used when page extension feature enabled on 32-bit machines; B
 
 This is a spinlock that protects node_present_pages, node_spanned_pages, node_start_pfn, and nr_zones. On many systems, these fields stay constant because they're initialized in boot process and never change. But in memory hotplugging or deferred page initilization, it can change. node_size_lock is used to synchronize when those fields does not stay constant.
 
-
+### Number of pages and holes in a node
 ```c
 	unsigned long node_start_pfn;
 	unsigned long node_present_pages; /* total number of physical pages */
@@ -103,6 +107,7 @@ This is a spinlock that protects node_present_pages, node_spanned_pages, node_st
 
 node_start_pfn is the starting pfn of a node. node_present_pages and node_spanned_pages describes how much pages a node has. the reason there are two variables is a node can have "holes".  for example, let's say a node has pages starting from pfn 1 to pfn 10, But there are no pages between pfn 5 and 6. node_present_pages is 8 and node_spanned_pages is 10.
 
+### kswapd
 ```c
 	int node_id;
 	wait_queue_head_t kswapd_wait;
@@ -122,6 +127,8 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 	int kswapd_failures;		/* Number of 'reclaimed == 0' runs */
 ```
 
+### Memory Compaction and kcompactd
+
 ```c
 #ifdef CONFIG_COMPACTION
 	int kcompactd_max_order;
@@ -131,6 +138,8 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 	bool proactive_compact_trigger;
 #endif
 ```
+
+These fields are used to describe kcompactd that actively does memory compaction. memory compaction will be discussed later.
 
 ```c
 	/*
@@ -149,6 +158,8 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 
 	/* Write-intensive fields used by page reclaim */
 	ZONE_PADDING(_pad1_)
+```
+	
 ```c
 #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
 	/*
@@ -159,12 +170,14 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
 ```
 
+### Transparent Huge Pages
+
 ```c
 #ifdef CONFIG_TRANSPARENT_HUGEPAGE
 	struct deferred_split deferred_split_queue;
 #endif
 ```
-
+### Page Reclamation
 ```c
 	/* Fields commonly accessed by the page reclaim scanner */
 
@@ -180,10 +193,11 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 	ZONE_PADDING(_pad2_)
 ```
 
+### Node statistics
 ```c
 	/* Per-node vmstats */
 	struct per_cpu_nodestat __percpu *per_cpu_nodestats;
 	atomic_long_t		vm_stat[NR_VM_NODE_STAT_ITEMS];
 } pg_data_t;
 ```
-These two fields are used to describe statistics of a node. it's useful to monitor how the memory is used. lets read /proc/meminfo for example. it's based on these statistics fields.
+These two fields are used to describe statistics of a node. it's useful when monitoring how the memory is used. Try reading /proc/meminfo for example. it's based on these statistics fields.
