@@ -16,7 +16,7 @@ Let's say, we have 32 CPUs in a single computer. As a memory bus can communicate
 
 ![NUMA.png](images/NUMA.png)
 
-One solution to this problem is to impelment multiple memory buses. It's called NUMA (Non-Uniform Memory Access). As it has multiple memory controller and buses, only some of cpus share a memory bus. The set of cpu(s) and memory is called "NUMA node".  
+One solution to this problem is to impelment multiple memory buses. It's called NUMA (Non-Uniform Memory Access). As it has multiple memory controller and buses, only some of cpus share a memory bus. The set of CPU(s) and memory is called "NUMA node". The memory thoughput can scale with number of CPUs if we increase number of NUMA nodes.
 
 Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and supports to NUMA architecture is added to Linux.  
 
