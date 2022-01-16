@@ -1,11 +1,11 @@
 ## Work in progress
 
-This document is WIP;
+This document is WIP; Some fields are not explained yet.
 
 ## NUMA node
 
 ## What is NUMA Architecture?
-NUMA is acronym of Non-Uniform Memory Access. when a computer system is based on NUMA Architecture, it means that access latency of system memory is not uniform across the system. in NUMA architecture, set of memory that has same access property is called a "Node".
+NUMA is acronym of Non-Uniform Memory Access. When we say a computer system is based on NUMA Architecture, it means that access latency of system memory is not uniform across the system. in NUMA architecture, set of memory that has same access property is called a "Node".
 
 ![NUMA.png](images/NUMA.png)
 
