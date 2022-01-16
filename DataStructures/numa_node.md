@@ -4,28 +4,21 @@ This document is WIP; Some fields are not explained yet.
 
 ## NUMA node
 
-## What is NUMA Architecture?
-Usual PCs have only one memory bus. That's true for the author's PC and maybe yours too. It's called UMA (Uniform Memory Access) architecture, which means that all pieces of memory has same access latency.
+## What is UMA and NUMA Architecture?
 
 ![UMA with single CPUs](images/single_cpu_uma.png)
 
-Main problem of such system is that it does not scale as number of cpus increases. Let's say, we have 32 CPUs in a single computer. As a memory bus can communicate with a single CPU simulatenously, Other 31 CPUs should always just wait. That's significant performance penalty when a workload is memory-intensive.  
+Usual PCs have only one memory bus. That's true for the author's PC and maybe yours too. It's called UMA (Uniform Memory Access) architecture, which means that all pieces of memory has same access latency. Main problem of such system is that it does not scale as number of cpus increases.
 
-![UMA with multiple CPUs](images/numa_increased_bus_length.png)
+![UMA with multiple CPUs](images/multiple_cpu_uma.png)
 
-One solution to this problem is to impelment multiple memory buses. It's called NUMA (Non-Uniform Memory Access).
-
-In 1990-2000s, NUMA architecture 
+Let's say, we have 32 CPUs in a single computer. As a memory bus can communicate with a single CPU simulatenously, Other 31 CPUs should always just wait. That's significant performance penalty when a workload is memory-intensive.  
 
 ![NUMA.png](images/NUMA.png)
 
-For example, let's say we have CPU 1, 2 and Node 1, 2. Node 1 is local to CPU 1, and Node 2 is local to CPU 2. in CPU 1's perspective, accessing Node 1 is much faster than Node 2 because Node 2 is remote node. when the CPU accesses to remote node, there is some of performance penalty because it has to access them through "interconnect".
+One solution to this problem is to impelment multiple memory buses. It's called NUMA (Non-Uniform Memory Access). As it has multiple memory controller and buses, only some of cpus share a memory bus. The set of cpu(s) and memory is called "NUMA node".  
 
-Managing NUMA node in MM subsystem is important because allocating remote node's memory can result in poor performance in NUMA architecture.
-
-## UMA Architecture
-
-Not all of computers is NUMA architecture. for example, the author's computer has only one node. That means access to memory always has same latency. This is called UMA.
+Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and supports to NUMA architecture is added to Linux.  
 
 ## struct pgdata_list
 
