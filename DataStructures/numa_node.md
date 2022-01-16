@@ -76,7 +76,7 @@ FLATMEM and memory models will be discussed later. To be brief, pages are manage
 
 PAGE_EXTENSION is used when page extension feature enabled on 32-bit machines; By its nature, 32-bit machines can have up to 4GB of memory. But it can have more than 4GB with page extension.
 
-### Pages can be added/removed after boot
+### When pages can be added/removed after boot
 ```c
 #if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_DEFERRED_STRUCT_PAGE_INIT)
 	/*
@@ -107,7 +107,7 @@ This is a spinlock that protects node_present_pages, node_spanned_pages, node_st
 
 node_start_pfn is the starting pfn of a node. node_present_pages and node_spanned_pages describes how much pages a node has. the reason there are two variables is a node can have "holes".  for example, let's say a node has pages starting from pfn 1 to pfn 10, But there are no pages between pfn 5 and 6. node_present_pages is 8 and node_spanned_pages is 10.
 
-### kswapd
+### kswapd for memory reclamation
 ```c
 	int node_id;
 	wait_queue_head_t kswapd_wait;
@@ -127,7 +127,9 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 	int kswapd_failures;		/* Number of 'reclaimed == 0' runs */
 ```
 
-### Memory Compaction and kcompactd
+When there are few free pages in a node, kernel wakes up a kernel thread called **kswapd**. those fields specifies how kswap should work. We will discuss kswapd soon.
+
+### kcompactd for memory compaction
 
 ```c
 #ifdef CONFIG_COMPACTION
@@ -139,7 +141,7 @@ node_start_pfn is the starting pfn of a node. node_present_pages and node_spanne
 #endif
 ```
 
-These fields are used to describe kcompactd that actively does memory compaction. memory compaction will be discussed later.
+These fields are used to describe how kcompactd should work. kcompactd is a kernel thread that actively does memory compaction. memory compaction and kcompactd will be discussed later.
 
 ```c
 	/*
@@ -147,7 +149,9 @@ These fields are used to describe kcompactd that actively does memory compaction
 	 * to userspace allocations.
 	 */
 	unsigned long		totalreserve_pages;
+```
 
+```c
 #ifdef CONFIG_NUMA
 	/*
 	 * node reclaim becomes active if more unmapped pages exist.
@@ -177,7 +181,7 @@ These fields are used to describe kcompactd that actively does memory compaction
 	struct deferred_split deferred_split_queue;
 #endif
 ```
-### Page Reclamation
+### lruvec
 ```c
 	/* Fields commonly accessed by the page reclaim scanner */
 
@@ -187,7 +191,10 @@ These fields are used to describe kcompactd that actively does memory compaction
 	 * Use mem_cgroup_lruvec() to look up lruvecs.
 	 */
 	struct lruvec		__lruvec;
+```
 
+### flags
+```
 	unsigned long		flags;
 
 	ZONE_PADDING(_pad2_)
@@ -201,3 +208,6 @@ These fields are used to describe kcompactd that actively does memory compaction
 } pg_data_t;
 ```
 These two fields are used to describe statistics of a node. it's useful when monitoring how the memory is used. Try reading /proc/meminfo for example. it's based on these statistics fields.
+
+### What is ZONE_PADDING?
+There are some fields defined using ZONE_PADDING() macro. This padding ensures that frequently accessed fields does not share a cache line. As node is shared across (some of) CPUs, There will be some of cache synchronization cost if frequently accessed fields share a cache line.
