@@ -3,5 +3,5 @@
 ## Basic Data Structures for Memory Management
 
 - [Node](DataStructures/numa_node.md)
-- Zone
+- [Zone](DataStructures/zone.md)
 - Page
