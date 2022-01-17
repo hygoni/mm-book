@@ -1,6 +1,7 @@
-# Index
+# INDEX
 
-## Data Structures for Memory Management
-  - [Node](DataStructures/numa_node.md)  
-  - Zone  
-  - Page  
+## Basic Data Structures for Memory Management
+
+- [Node](DataStructures/numa_node.md)
+- Zone
+- Page
