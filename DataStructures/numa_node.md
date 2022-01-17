@@ -42,9 +42,9 @@ static inline struct pglist_data *NODE_DATA(int nid)
 #endif /* !CONFIG_NUMA */
 ```
 
-## struct pgdata_list
+## struct pglist_data
 
-a NUMA node is represented in struct pgdata_list (or pg_data_t) in linux. it's defined in include/linux/mmzone.h:
+a NUMA node is represented in struct pglist_data (or pg_data_t) in linux. it's defined in include/linux/mmzone.h:
 
 ```c
 /*
