@@ -8,17 +8,17 @@ This document is WIP; Some fields are not explained yet.
 
 ![UMA with single CPUs](images/single_cpu_uma.png)
 
-Usual PCs have only one memory controller. That's true for the author's PC and maybe yours too. Because there is only one memory controller, access latency to memory is uniform across the system. It's called UMA (Uniform Memory Access) architecture. Main problem of such system is that it does not scale as number of cpus increases.
+Usual PCs have only one memory bus. That's true for the author's PC and maybe yours too. Because there is only one memory bus, access latency to memory is uniform across the system. It's called UMA (Uniform Memory Access) architecture. Main problem of such system is that it does not scale as number of cpus increases.
 
 ![UMA with multiple CPUs](images/multiple_cpu_uma.png)
 
-Let's say, we have 32 CPUs in a single computer. As a memory controller can communicate with a single CPU simulatenously, Other 31 CPUs should always just wait. That's significant performance penalty when a workload is memory-intensive. (Even if the existence of cache loosens this situation.)  
+Let's say, we have 32 CPUs in a single computer. As only one CPU can access memory at a time, Other 31 CPUs should always just wait. That's significant performance penalty when a workload is memory-intensive. (Even if the existence of cache loosens this situation.)  
 
 ![NUMA.png](images/NUMA.png)
 
-One solution to this problem is to impelment multiple memory controllers. It's called NUMA (Non-Uniform Memory Access). As it has multiple memory controllers, only some of cpus share a memory controller. (or there will be only one cpu) The set of CPU(s) and memory is called "NUMA node". The memory thoughput can scale with number of CPUs if we increase number of NUMA nodes.
+One solution to this problem is to impelment hierarchical memory bus architecture. It's called NUMA (Non-Uniform Memory Access). As it has local and global buses, only some of cpus share a local bus. (or there will be only one cpu) The set of CPU(s) and memory is called "NUMA node". The memory thoughput can scale with number of CPUs if we increase number of NUMA nodes.
 
-In our example, the left node is local to CPU 1 and 2. Accessing from local node is fastest. If CPU 1 and 2 allocate memory from right node (remote node), they have to access through "interconnect", which increases latency so much. So the page allocator tries to allocate pages from local node as possible.  
+In our example, the left node is local to CPU 1 and 2. Accessing from local node is fastest. If CPU 1 and 2 allocate memory from right node (remote node), they have to access through "interconnect" or "global bus", which increases latency so much. So the page allocator tries to allocate pages from local node as possible.  
 
 Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and supports to NUMA architecture is added to Linux.  
 
