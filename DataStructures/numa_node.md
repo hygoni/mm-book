@@ -14,13 +14,13 @@ Usual PCs have only one memory bus. That's true for the author's PC and maybe yo
 
 Let's say, we have 32 CPUs in a single computer. As only one CPU can access memory at a time, Other 31 CPUs should always just wait. That's significant performance penalty when a workload is memory-intensive. (Even if the existence of cache loosens this situation.)  
 
-![NUMA.png](images/NUMA.png)
+![Hierarchical Bus Architecture](images/NUMA.png)
 
-One solution to this problem is to impelment hierarchical memory bus architecture. It's called NUMA (Non-Uniform Memory Access). As it has local and global buses, only some of cpus share a local bus. (or there will be only one cpu) The set of CPU(s) and memory is called "NUMA node". The memory thoughput can scale with number of CPUs if we increase number of NUMA nodes.
+One solution to this problem is to impelment hierarchical memory bus architecture. It's called NUMA (Non-Uniform Memory Access). As it has local and global buses, only some of cpus share a local bus. The set of CPU(s) and memory is called "NUMA node". The memory thoughput can scale with number of CPUs if we increase number of NUMA nodes.
 
-In our example, the left node is local to CPU 1 and 2. Accessing from local node is fastest. If CPU 1 and 2 allocate memory from right node (remote node), they have to access through "interconnect" or "global bus", which increases latency so much. So the page allocator tries to allocate pages from local node as possible.  
+In our example, the left node is local to left CPU. Accessing from local node is fastest. If left CPU allocate memory from right node (remote node), they have to access through "interconnect" or "global bus", which increases latency so much. So the page allocator tries to allocate pages from local node as possible.  
 
-Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and supports to NUMA architecture is added to Linux.  
+Supporting NUMA architecture is important because allocating remote node's memory can result in poor performance in NUMA architecture. In 1990-2000s, NUMA architecture gained its popularity and support to NUMA architecture is added to Linux.  
 
 ## How Linux manages nodes
 in Linux, a NUMA node is represented in struct pglist_data (or pg_data_t). On UMA (CONFIG_NUMA is not defined), it always has global contig_page_data variable. On NUMA, there is architecture-specific arrays of pglist_data. in both cases, NODE_DATA(nid) can be used to access proper node descriptor. (nid is node id)
