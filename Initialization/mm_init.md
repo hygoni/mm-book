@@ -9,7 +9,7 @@ In this page, we're not explain all details here. We'll take a look what membloc
 ## start_kernel()
 
 start_kernel() in init/main.c is an entrypoint to kernel. every architecture-specific initialization code jumps to start_kernel().  
-Below is simplified overview of start_kernel().  
+Below is **simplified overview** of start_kernel().  
 
 ```c
 asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
@@ -97,6 +97,8 @@ Above are initialization codes that needs large pages. Only memblock can serve a
         mem_init();
         mem_init_print_info();
 ```
+
+Before mem_init(), kernel uses memblock to allocate memory in early boot process. after mem_init(), memblock returns all available memory to buddy allocator.  
 
 ```c
         kmem_cache_init();
