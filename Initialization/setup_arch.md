@@ -12,55 +12,15 @@ To be more in detail:
 And early page table will be replaced in setup_arch().  
 
 ```c
-	printk(KERN_INFO "Command line: %s\n", boot_command_line);
-	boot_cpu_data.x86_phys_bits = MAX_PHYSMEM_BITS;
-
-	/*
-	 * If we have OLPC OFW, we might end up relocating the fixmap due to
-	 * reserve_top(), so do this before touching the ioremap area.
-	 */
-	olpc_ofw_detect();
-
-	idt_setup_early_traps();
-	early_cpu_init();
-	jump_label_init();
-	static_call_init();
 	early_ioremap_init();
+```
 
+early ioremap
+```c
 	setup_olpc_ofw_pgd();
+```
 
-	ROOT_DEV = old_decode_dev(boot_params.hdr.root_dev);
-	screen_info = boot_params.screen_info;
-	edid_info = boot_params.edid_info;
-#ifdef CONFIG_X86_32
-	apm_info.bios = boot_params.apm_bios_info;
-	ist_info = boot_params.ist_info;
-#endif
-	saved_video_mode = boot_params.hdr.vid_mode;
-	bootloader_type = boot_params.hdr.type_of_loader;
-	if ((bootloader_type >> 4) == 0xe) {
-		bootloader_type &= 0xf;
-		bootloader_type |= (boot_params.hdr.ext_loader_type+0x10) << 4;
-	}
-	bootloader_version  = bootloader_type & 0xf;
-	bootloader_version |= boot_params.hdr.ext_loader_ver << 4;
-
-#ifdef CONFIG_BLK_DEV_RAM
-	rd_image_start = boot_params.hdr.ram_size & RAMDISK_IMAGE_START_MASK;
-#endif
-#ifdef CONFIG_EFI
-	if (!strncmp((char *)&boot_params.efi_info.efi_loader_signature,
-		     EFI32_LOADER_SIGNATURE, 4)) {
-		set_bit(EFI_BOOT, &efi.flags);
-	} else if (!strncmp((char *)&boot_params.efi_info.efi_loader_signature,
-		     EFI64_LOADER_SIGNATURE, 4)) {
-		set_bit(EFI_BOOT, &efi.flags);
-		set_bit(EFI_64BIT, &efi.flags);
-	}
-#endif
-
-	x86_init.oem.arch_setup();
-
+```c
 	/*
 	 * Do some memory reservations *before* memory is added to memblock, so
 	 * memblock allocations won't overwrite it.
@@ -74,7 +34,11 @@ And early page table will be replaced in setup_arch().
 	 * early reservations have happened already.
 	 */
 	early_reserve_memory();
+```
 
+Reserve memory to avoid memblock using it. the area occupied by kernel itself should not be used by memblock.  
+
+```c
 	iomem_resource.end = (1ULL << boot_cpu_data.x86_phys_bits) - 1;
 	e820__memory_setup();
 	parse_setup_data();
@@ -93,22 +57,10 @@ And early page table will be replaced in setup_arch().
 	data_resource.end = __pa_symbol(_edata)-1;
 	bss_resource.start = __pa_symbol(__bss_start);
 	bss_resource.end = __pa_symbol(__bss_stop)-1;
+```
+address of various symbols
 
-#ifdef CONFIG_CMDLINE_BOOL
-#ifdef CONFIG_CMDLINE_OVERRIDE
-	strlcpy(boot_command_line, builtin_cmdline, COMMAND_LINE_SIZE);
-#else
-	if (builtin_cmdline[0]) {
-		/* append boot loader cmdline to builtin */
-		strlcat(builtin_cmdline, " ", COMMAND_LINE_SIZE);
-		strlcat(builtin_cmdline, boot_command_line, COMMAND_LINE_SIZE);
-		strlcpy(boot_command_line, builtin_cmdline, COMMAND_LINE_SIZE);
-	}
-#endif
-#endif
-
-	strlcpy(command_line, boot_command_line, COMMAND_LINE_SIZE);
-	*cmdline_p = command_line;
+```c
 
 	/*
 	 * x86_configure_nx() is called before parse_early_param() to detect
@@ -147,6 +99,10 @@ And early page table will be replaced in setup_arch().
 	if (movable_node_is_enabled())
 		memblock_set_bottom_up(true);
 #endif
+```
+
+
+```c
 
 	x86_report_nx();
 
