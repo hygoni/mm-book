@@ -4,7 +4,7 @@ This page describes how memory is initialized in x86_64. This is highly architec
 And there are tons of initializations codes like ACPI, SMP, tracing, cgroups, ACPI, ... etc.  
 We'll get buried in the code if we analyze all of them. I tried to explain what is important in terms of memory management.  
 
-In this page, we're not explain all details here. We'll take a look what memblock, buddy, slab, vmalloc, ... etc are.  
+In this page, I do not explain all details here. Later we'll take a look at memblock, buddy, slab, vmalloc, ... etc.  
 
 ## start_kernel()
 
