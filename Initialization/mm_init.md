@@ -4,11 +4,12 @@ This page describes how memory is initialized in x86_64. This is highly architec
 And there are tons of initializations codes like ACPI, SMP, tracing, cgroups, ACPI, ... etc.  
 We'll get buried in the code if we analyze all of them. I tried to explain what is important in terms of memory management.  
 
+In this page, we're not explain all details here. We'll take a look what memblock, buddy, slab, vmalloc, ... etc are.  
+
 ## start_kernel()
 
 start_kernel() in init/main.c is an entrypoint to kernel. every architecture-specific initialization code jumps to start_kernel().  
-
-Below is simplified overview of start_kernel(). It's self-explanatory.  
+Below is simplified overview of start_kernel().  
 
 ```c
 asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
@@ -46,6 +47,7 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
         early_boot_irqs_disabled = false;
         local_irq_enable();
 	
+	/* late initialization of slab */
 	kmem_cache_init_late();
 
 	/* Initialize per-cpu pagesets */
@@ -69,10 +71,9 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 }
 ```
 
-## setup_arch()
-
-
 ## mm_init()
+
+
 
 ```c
 /*
@@ -89,22 +90,44 @@ static void __init mm_init(void)
         kfence_alloc_pool();
         report_meminit();
         stack_depot_early_init();
+```
+Above are initialization codes that needs large pages. Only memblock can serve allocations bigger than MAX_ORDER.  
+
+```c
         mem_init();
         mem_init_print_info();
+```
+
+```c
         kmem_cache_init();
+```
+
+slab allocator is initialized just after buddy allocator became available.  
+
+```c
 
 	/*
-         * page_owner must be initialized after buddy is ready, and also after
-         * slab is ready so that stack_depot_init() works properly
-         */
-        page_ext_init_flatmem_late();
-        kmemleak_init();
-        pgtable_init();
-        debug_objects_mem_init();
+	 * page_owner must be initialized after buddy is ready, and also after
+	 * slab is ready so that stack_depot_init() works properly
+	 */
+	page_ext_init_flatmem_late();
+	kmemleak_init();
+	pgtable_init();
+	debug_objects_mem_init();
+	
         vmalloc_init();
-        /* Should be run before the first non-init thread is created */
-        init_espfix_bsp();
-        /* Should be run after espfix64 is set up. */
-        pti_init();
+	/* Should be run before the first non-init thread is created */
+	init_espfix_bsp();
+	/* Should be run after espfix64 is set up. */
+	pti_init();
 }
 ```
+
+Some subsystems that requires slab are initialized after kmem_cache_init(), including vmalloc subsystem.
+
+# Summary
+
+1) start_kernel() is entrypoint to kernel after architecture-specific initialization code.
+2) page tables, memblock are initialized in setup_arch().
+3) Linux uses interleave NUMA policy at initialization and than change to default policy.  
+4) in mm_init(), memblock returns all available memory to buddy allocator. And then slab and vmalloc is initialized.  
