@@ -6,8 +6,10 @@ Removed some x86_32/64 ifdefs as we are interested in x86_64.
 Let's take a look at setup_arch(). Note that early page table were already initialized and loaded into cr3. This was done before entering start_kernel().  
 
 To be more in detail:  
-	1) Early page table is initialized in [startup_32()](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/boot/compressed/head_64.S#L202). But that was for temporary. x86 initializes page table here and replace early page table.  
+	1) Early page table is initialized in [startup_32()](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/boot/compressed/head_64.S#L202).  
 	2) [Fixing early page table after relocating kernel and creating identity mapping](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/kernel/head64.c#L189)  
+	
+And early page table will be replaced in setup_arch().  
 
 ```c
 	printk(KERN_INFO "Command line: %s\n", boot_command_line);
