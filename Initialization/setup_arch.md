@@ -3,22 +3,13 @@
 In this page, we'll take a look how x86_64 initializes its memory in setup_arch().  
 Removed some x86_32/64 ifdefs as we are interested in x86_64.  
 
-```c
-/*
- * Determine if we were loaded by an EFI loader.  If so, then we have also been
- * passed the efi memmap, systab, etc., so we should use these data structures
- * for initialization.  Note, the efi init code path is determined by the
- * global efi_enabled. This allows the same kernel image to be used on existing
- * systems (with a traditional BIOS) as well as on EFI systems.
- */
-/*
- * setup_arch - architecture-specific boot-time initializations
- *
- * Note: On x86_64, fixmaps are ready for use even before this is called.
- */
+Let's take a look at setup_arch(). Note that early page table were already initialized and loaded into cr3. This was done before entering start_kernel().  
 
-void __init setup_arch(char **cmdline_p)
-{
+To be more in detail:  
+	1) Early page table is initialized in [startup_32()](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/boot/compressed/head_64.S#L202). But that was for temporary. x86 initializes page table here and replace early page table.  
+	2) [Fixing early page table after relocating kernel and creating identity mapping](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/kernel/head64.c#L189)  
+
+```c
 	printk(KERN_INFO "Command line: %s\n", boot_command_line);
 	boot_cpu_data.x86_phys_bits = MAX_PHYSMEM_BITS;
 
