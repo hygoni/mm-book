@@ -4,3 +4,9 @@
     * [NUMA nodes](DataStructures/numa_node.md)
     * [Zone](DataStructures/zone.md)
     * [Page](DataStructures/page.md)
+
+* [Initialization](Initialization/README.md)
+    * [start_kernel()]()
+    * [Page Table]()
+    * [Zone]()
+    * [Node]()
