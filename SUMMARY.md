@@ -7,3 +7,4 @@
 
 * [Initialization](Initialization/README.md)
     * [start_kernel()](Initialization/mm_init.md)
+    * [setup_arch()](Initialization/setup_arch.md)
