@@ -256,8 +256,13 @@ This single function init_mem_mapping() is where page table for kernel is initia
 			break;
 		}
 	}
+```
 
+```c
 	reserve_initrd();
+```
+
+Reserve memory for init ramdisk from memblock.  
 
 	acpi_table_upgrade();
 	/* Look for ACPI tables and reserve memory occupied by them. */
@@ -291,9 +296,18 @@ This single function init_mem_mapping() is where page table for kernel is initia
 
 ```c
 	x86_init.paging.pagetable_init();
+```
 
+x86_init.paging.pagetable_init() = native_pagetable_init =
+
+
+```c
 	kasan_init();
+```
 
+When using KASAN it uses 1/8 of total RAM for shadow memory, which uses separate address space. kasan_init() initializes shadow memory.  
+
+```c
 	/*
 	 * Sync back kernel address range.
 	 *
