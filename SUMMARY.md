@@ -7,6 +7,3 @@
 
 * [Initialization](Initialization/README.md)
     * [start_kernel()](Initialization/mm_init.md)
-    * [Page Table]()
-    * [Zone]()
-    * [Node]()
