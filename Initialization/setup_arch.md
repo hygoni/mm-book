@@ -11,6 +11,9 @@ To be more in detail:
 	
 And early page table will be replaced in setup_arch().  
 
+
+## setup_arch() in arch/x86/kernel/setup.c
+
 ```c
 	early_ioremap_init();
 ```
