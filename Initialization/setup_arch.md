@@ -1,7 +1,7 @@
 # setup_arch()
 
 In this page, we'll take a look how x86_64 initializes its memory in setup_arch().  
-Removed some x86_32/64 ifdefs as we are interested in x86_64.  
+Removed some x86_32/64 #ifdefs as we are interested only in x86_64.  
 
 Let's take a look at setup_arch(). Note that early page table were already initialized and loaded into cr3. This was done before entering start_kernel().  
 
@@ -58,7 +58,8 @@ Reserve memory to avoid memblock using it. the area occupied by kernel itself sh
 	bss_resource.start = __pa_symbol(__bss_start);
 	bss_resource.end = __pa_symbol(__bss_stop)-1;
 ```
-address of various symbols
+
+Initialize address of various symbols
 
 ```c
 
@@ -75,7 +76,9 @@ address of various symbols
 
 	if (efi_enabled(EFI_BOOT))
 		efi_memblock_x86_reserve_range();
+```
 
+```c
 #ifdef CONFIG_MEMORY_HOTPLUG
 	/*
 	 * Memory used by the kernel cannot be hot-removed because Linux
@@ -100,6 +103,9 @@ address of various symbols
 		memblock_set_bottom_up(true);
 #endif
 ```
+
+In boot process, kernel decide to use memblock in bottom-up (address increases as allocations are done) or top-down way.
+When using memory hotplugging, kernel should not reside in hotpluggable memory. So kernel must choose bottom-up way when using hotplugging.  
 
 
 ```c
@@ -200,7 +206,9 @@ address of various symbols
 
 	memblock_set_current_limit(ISA_END_ADDRESS);
 	e820__memblock_setup();
+```
 
+```c
 	/*
 	 * Needs to run after memblock setup because it needs the physical
 	 * memory size.
@@ -240,9 +248,15 @@ address of various symbols
 	 * crashkernel the entire 1M is reserved anyway.
 	 */
 	reserve_real_mode();
+```
 
+```c
 	init_mem_mapping();
+```
 
+This single function init_mem_mapping() is where page table for kernel is initialized. in x86_64, in fact, there is already early page table to use in boot process. in init_mem_mapping(), we initialize page table of all available memory for kernel.  
+
+```c
 	idt_setup_early_pf();
 
 	/*
@@ -313,7 +327,9 @@ address of various symbols
 
 	if (!early_xdbc_setup_hardware())
 		early_xdbc_register_console();
+```
 
+```c
 	x86_init.paging.pagetable_init();
 
 	kasan_init();
