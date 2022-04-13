@@ -16,9 +16,6 @@ And early page table will be replaced in setup_arch().
 ```
 
 early ioremap
-```c
-	setup_olpc_ofw_pgd();
-```
 
 ```c
 	/*
@@ -59,24 +56,7 @@ Reserve memory to avoid memblock using it. the area occupied by kernel itself sh
 	bss_resource.end = __pa_symbol(__bss_stop)-1;
 ```
 
-Initialize address of various symbols
-
-```c
-
-	/*
-	 * x86_configure_nx() is called before parse_early_param() to detect
-	 * whether hardware doesn't support NX (so that the early EHCI debug
-	 * console setup can safely call set_fixmap()). It may then be called
-	 * again from within noexec_setup() during parsing early parameters
-	 * to honor the respective command line option.
-	 */
-	x86_configure_nx();
-
-	parse_early_param();
-
-	if (efi_enabled(EFI_BOOT))
-		efi_memblock_x86_reserve_range();
-```
+Initialize address of various kernel symbols
 
 ```c
 #ifdef CONFIG_MEMORY_HOTPLUG
@@ -110,30 +90,13 @@ When using memory hotplugging, kernel should not reside in hotpluggable memory. 
 
 ```c
 
-	x86_report_nx();
-
-	if (acpi_mps_check()) {
-#ifdef CONFIG_X86_LOCAL_APIC
-		disable_apic = 1;
-#endif
-		setup_clear_cpu_cap(X86_FEATURE_APIC);
-	}
-
 	e820__reserve_setup_data();
 	e820__finish_early_params();
 
 	if (efi_enabled(EFI_BOOT))
 		efi_init();
 
-	dmi_setup();
 
-	/*
-	 * VMware detection requires dmi to be available, so this
-	 * needs to be done after dmi_setup(), for the boot CPU.
-	 */
-	init_hypervisor_platform();
-
-	tsc_early_init();
 	x86_init.resources.probe_roms();
 
 	/* after parse_early_param, so could debug it */
@@ -153,12 +116,6 @@ When using memory hotplugging, kernel should not reside in hotpluggable memory. 
 	 */
 	max_pfn = e820__end_of_ram_pfn();
 
-	/* update e820 for memory not covered by WB MTRRs */
-	if (IS_ENABLED(CONFIG_MTRR))
-		mtrr_bp_init();
-	else
-		pat_disable("PAT support disabled because CONFIG_MTRR is disabled in the kernel.");
-
 	if (mtrr_trim_uncached_memory(max_pfn))
 		max_pfn = e820__end_of_ram_pfn();
 
@@ -177,8 +134,6 @@ When using memory hotplugging, kernel should not reside in hotpluggable memory. 
 	 */
 	kernel_randomize_memory();
 
-	check_x2apic();
-
 	/* How many end-of-memory variables you have, grandma! */
 	/* need this before calling reserve_initrd */
 	if (max_pfn > (1UL<<(32 - PAGE_SHIFT)))
@@ -187,21 +142,23 @@ When using memory hotplugging, kernel should not reside in hotpluggable memory. 
 		max_low_pfn = max_pfn;
 
 	high_memory = (void *)__va(max_pfn * PAGE_SIZE - 1) + 1;
-
-	/*
-	 * Find and reserve possible boot-time SMP configuration:
-	 */
-	find_smp_config();
-
+```
+```c
 	early_alloc_pgt_buf();
+```
 
+We need to allocate initial buffer for page tables before initializing page tables. That is pgt_buf.  
+
+```c
 	/*
 	 * Need to conclude brk, before e820__memblock_setup()
 	 * it could use memblock_find_in_range, could overlap with
 	 * brk area.
 	 */
 	reserve_brk();
+```c
 
+```
 	cleanup_highmap();
 
 	memblock_set_current_limit(ISA_END_ADDRESS);
