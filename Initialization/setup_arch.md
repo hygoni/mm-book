@@ -1,4 +1,4 @@
-# setup_arch()
+# setup_arch() [Work In Progress]
 
 In this page, we'll take a look how x86_64 initializes its memory in setup_arch().  
 Removed some x86_32/64 #ifdefs as we are interested only in x86_64.  
