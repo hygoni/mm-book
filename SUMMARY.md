@@ -1,10 +1,15 @@
-### Summary
+# Table of contents
 
-* [Concepts / Data Structures](DataStructures/README.md)
-    * [NUMA nodes](DataStructures/numa_node.md)
-    * [Zone](DataStructures/zone.md)
-    * [Page](DataStructures/page.md)
+* [README](README.md)
 
-* [Initialization](Initialization/README.md)
-    * [start_kernel()](Initialization/mm_init.md)
-    * [setup_arch()](Initialization/setup_arch.md)
+## Summary
+
+* [Concepts / Data Structures](summary/concepts-data-structures/README.md)
+  * [NUMA nodes](DataStructures/numa\_node.md)
+  * [Zone](DataStructures/zone.md)
+  * [Page](DataStructures/page.md)
+* [Initialization](summary/initialization/README.md)
+  * [boot loader](summary/initialization/boot-loader.md)
+  * [main()](summary/initialization/main.md)
+  * [start\_kernel()](Initialization/mm\_init.md)
+  * [setup\_arch()](Initialization/setup\_arch.md)
