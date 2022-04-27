@@ -1,6 +1,6 @@
 # Entrypoint to kernel
 
-The entrypoint of kernel is [\_start ](https://elixir.bootlin.com/linux/v5.17.3/C/ident/\_start)symbol at [arch/x86/boot/header.S](https://elixir.bootlin.com/linux/v5.17.3/source/arch/x86/boot/header.S), which jumps to start\_of\_setup.
+The entrypoint of kernel is [\_start ](https://elixir.bootlin.com/linux/v5.17.3/C/ident/\_start)symbol at [arch/x86/boot/header.S](https://elixir.bootlin.com/linux/v5.17.3/source/arch/x86/boot/header.S), which jumps to **start\_of\_setup.**
 
 ```
               ~                          ~
@@ -39,7 +39,20 @@ According to boot protocol, There are some information that boot loader should p
 
 One notable section is .signature. This stores a magic value, which is required by boot protocol. if the the signature is not set, the kernel stops to boot.
 
+### start\_of\_setup
+
+This summarizes [start\_of\_setup](https://elixir.bootlin.com/linux/v5.17.3/C/ident/start\_of\_setup), where \_start symbol jumps to. It prepares environment before jumping to C code.
+
+#### Stack Initialization
+
+Before jumping to C code, we need to setup stack and initialize BSS section. It's boot loader's job to initialize stack properly and pass pointer to end of heap by **heap\_end\_ptr** boot parameter. But ancient boot loader may pass invalid stack segment register (%ds != %ss). In that case, we initialize our own stack.
 
 
 
+After setting up stack, it initialize BSS segment to zero and finally, call [main()](https://elixir.bootlin.com/linux/v5.17.3/source/arch/x86/boot/main.c#L134).
+
+```
+# Jump to C code (should not return)
+	calll	main
+```
 

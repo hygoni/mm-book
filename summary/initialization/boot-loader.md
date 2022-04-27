@@ -1,18 +1,10 @@
 # Boot Loader
 
-When you turn on x86 computer, the first instruction executed is in [reset vector](https://en.wikipedia.org/wiki/Reset\_vector), which is located at FFFFFFF0h (16 bytes below 4 GB). [\[link\]](https://stackoverflow.com/questions/9210296/software-initialization-code-at-0xfffffff0h) The address of reset vector does not belong to RAM, but  it is hardwired to ROM, or flash memory.
+When you turn on x86 computer, the first instruction executed is in [reset vector](https://en.wikipedia.org/wiki/Reset\_vector), which is located at FFFFFFF0h (16 bytes below 4 GB). [\[link\]](https://stackoverflow.com/questions/9210296/software-initialization-code-at-0xfffffff0h) The address of reset vector does not belong to RAM, but  it is hardwired to ROM, or flash memory. When CPU starts executing instructions in reset vector, the firmware called [BIOS ](https://en.wikipedia.org/wiki/BIOS)is running. The job of BIOS is to test and initialize hardwares (including RAM) and to load boot loader.
 
 
 
-When CPU starts executing instructions in reset vector, the firmware called [BIOS ](https://en.wikipedia.org/wiki/BIOS)is running. The job of BIOS is to test and initialize hardwares (including RAM) and to load boot loader.
-
-
-
-[Boot loader](https://en.wikipedia.org/wiki/Bootloader), like GRUB or LILO, is a program that is responsible for booting the computer. It loads kernel into memory and passes control to kernel. Also, it gives some information needed for kernel to boot. The specification for boot protocol is documented at [here.](https://www.kernel.org/doc/html/latest/x86/boot.html)
-
-
-
-It is job of BIOS to find and load the boot loader. the boot loader is located in [Master Boot Record](https://en.wikipedia.org/wiki/Master\_boot\_record#BIOS\_to\_MBR\_interface), which is first sector in hard drives. But as the size of a sector is just 512 bytes, it is not enough; so usually the image in MBR jumps to another image, that contains full boot loader.
+[Boot loader](https://en.wikipedia.org/wiki/Bootloader), like GRUB or LILO, is a program that is responsible for booting the computer. It loads kernel into memory and passes control to kernel. Also, it gives some information needed for kernel to boot. The specification for boot protocol is documented at [here.](https://www.kernel.org/doc/html/latest/x86/boot.html) It is job of BIOS to find and load the boot loader. the boot loader is located in [Master Boot Record](https://en.wikipedia.org/wiki/Master\_boot\_record#BIOS\_to\_MBR\_interface), which is first sector in hard drives. But as the size of a sector is just 512 bytes, it is not enough; so usually the image in MBR jumps to another image, that contains full boot loader.
 
 ### Memory Layout
 
