@@ -1,18 +1,17 @@
-# setup_arch() [Work In Progress]
+# setup\_arch()
 
-In this page, we'll take a look how x86_64 initializes its memory in setup_arch().  
-Removed some x86_32/64 #ifdefs as we are interested only in x86_64.  
+In this page, we'll take a look how x86\_64 initializes its memory in setup\_arch().\
+Removed some x86\_32/64 #ifdefs as we are interested only in x86\_64.
 
-Let's take a look at setup_arch(). Note that early page table were already initialized and loaded into cr3. This was done before entering start_kernel().  
+Let's take a look at setup\_arch(). Note that early page table were already initialized and loaded into cr3. This was done before entering start\_kernel().
 
-To be more in detail:  
-	1) Early page table is initialized in [startup_32()](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/boot/compressed/head_64.S#L202).  
-	2) [Fixing early page table after relocating kernel and creating identity mapping](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/kernel/head64.c#L189)  
-	
-And early page table will be replaced in setup_arch().  
+To be more in detail:\
+1\) Early page table is initialized in [startup\_32()](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/boot/compressed/head\_64.S#L202).\
+2\) [Fixing early page table after relocating kernel and creating identity mapping](https://elixir.bootlin.com/linux/v5.17-rc8/source/arch/x86/kernel/head64.c#L189)
 
+And early page table will be replaced in setup\_arch().
 
-## setup_arch() in arch/x86/kernel/setup.c
+## setup\_arch() in arch/x86/kernel/setup.c
 
 ```c
 	early_ioremap_init();
@@ -36,7 +35,7 @@ early ioremap
 	early_reserve_memory();
 ```
 
-Reserve memory to avoid memblock using it. the area occupied by kernel itself should not be used by memblock.  
+Reserve memory to avoid memblock using it. the area occupied by kernel itself should not be used by memblock.
 
 ```c
 	iomem_resource.end = (1ULL << boot_cpu_data.x86_phys_bits) - 1;
@@ -87,12 +86,9 @@ Initialize address of various kernel symbols
 #endif
 ```
 
-In boot process, kernel decide to use memblock in bottom-up (address increases as allocations are done) or top-down way.
-When using memory hotplugging, kernel should not reside in hotpluggable memory. So kernel must choose bottom-up way when using hotplugging.  
-
+In boot process, kernel decide to use memblock in bottom-up (address increases as allocations are done) or top-down way. When using memory hotplugging, kernel should not reside in hotpluggable memory. So kernel must choose bottom-up way when using hotplugging.
 
 ```c
-
 	e820__reserve_setup_data();
 	e820__finish_early_params();
 
@@ -146,11 +142,12 @@ When using memory hotplugging, kernel should not reside in hotpluggable memory. 
 
 	high_memory = (void *)__va(max_pfn * PAGE_SIZE - 1) + 1;
 ```
+
 ```c
 	early_alloc_pgt_buf();
 ```
 
-We need to allocate initial buffer for page tables before initializing page tables. That is pgt_buf.  
+We need to allocate initial buffer for page tables before initializing page tables. That is pgt\_buf.
 
 ```c
 	/*
@@ -159,13 +156,13 @@ We need to allocate initial buffer for page tables before initializing page tabl
 	 * brk area.
 	 */
 	reserve_brk();
-```c
-
 ```
-	cleanup_highmap();
 
-	memblock_set_current_limit(ISA_END_ADDRESS);
-	e820__memblock_setup();
+```c
+cleanup_highmap();
+
+memblock_set_current_limit(ISA_END_ADDRESS);
+e820__memblock_setup();
 ```
 
 ```c
@@ -214,7 +211,7 @@ We need to allocate initial buffer for page tables before initializing page tabl
 	init_mem_mapping();
 ```
 
-This single function init_mem_mapping() is where page table for kernel is initialized. in x86_64, in fact, there is already early page table to use in boot process. in init_mem_mapping(), we initialize page table of all available memory for kernel.  
+This single function init\_mem\_mapping() is where page table for kernel is initialized. in x86\_64, in fact, there is already early page table to use in boot process. in init\_mem\_mapping(), we initialize page table of all available memory for kernel.
 
 ```c
 	idt_setup_early_pf();
@@ -262,50 +259,50 @@ This single function init_mem_mapping() is where page table for kernel is initia
 	reserve_initrd();
 ```
 
-Reserve memory for init ramdisk from memblock.  
+Reserve memory for init ramdisk from memblock.
 
-	acpi_table_upgrade();
-	/* Look for ACPI tables and reserve memory occupied by them. */
-	acpi_boot_table_init();
+```c
+acpi_table_upgrade();
+/* Look for ACPI tables and reserve memory occupied by them. */
+acpi_boot_table_init();
 
-	vsmp_init();
+vsmp_init();
 
-	io_delay_init();
+io_delay_init();
 
-	early_platform_quirks();
+early_platform_quirks();
 
-	early_acpi_boot_init();
+early_acpi_boot_init();
 
-	initmem_init();
-	dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
+initmem_init();
+dma_contiguous_reserve(max_pfn_mapped << PAGE_SHIFT);
 
-	if (boot_cpu_has(X86_FEATURE_GBPAGES))
-		hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
+if (boot_cpu_has(X86_FEATURE_GBPAGES))
+	hugetlb_cma_reserve(PUD_SHIFT - PAGE_SHIFT);
 
-	/*
-	 * Reserve memory for crash kernel after SRAT is parsed so that it
-	 * won't consume hotpluggable memory.
-	 */
-	reserve_crashkernel();
+/*
+ * Reserve memory for crash kernel after SRAT is parsed so that it
+ * won't consume hotpluggable memory.
+ */
+reserve_crashkernel();
 
-	memblock_find_dma_reserve();
+memblock_find_dma_reserve();
 
-	if (!early_xdbc_setup_hardware())
-		early_xdbc_register_console();
+if (!early_xdbc_setup_hardware())
+	early_xdbc_register_console();
 ```
 
 ```c
 	x86_init.paging.pagetable_init();
 ```
 
-x86_init.paging.pagetable_init() = native_pagetable_init =
-
+x86\_init.paging.pagetable\_init() is [paging\_init()](https://elixir.bootlin.com/linux/latest/source/arch/x86/mm/init\_64.c#L814) in x86\_64. It initializes pglist\_data and zone.
 
 ```c
 	kasan_init();
 ```
 
-When using KASAN it uses 1/8 of total RAM for shadow memory, which uses separate address space. kasan_init() initializes shadow memory.  
+When using KASAN it uses 1/8 of total RAM for shadow memory, which uses separate address space. kasan\_init() initializes shadow memory.
 
 ```c
 	/*
@@ -387,4 +384,3 @@ When using KASAN it uses 1/8 of total RAM for shadow memory, which uses separate
 	unwind_init();
 }
 ```
-

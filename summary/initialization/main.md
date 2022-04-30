@@ -172,7 +172,7 @@ It first sets registers (See [the specifiction](http://www.uruk.org/orig-grub/me
 * DI is pointer to buffer.
 * CX is size of buffer.
 * DX is signature 'SMAP', which means the kernel wants information about memory to be returned in the buffer.
-* BX is zero, which means it's first iteration. after first iteration, it is set to the value previously returned by this function.
+* EBX is zero, which means it's first iteration. after first iteration, it is set to the value previously returned by this function.
 
 ```c
 	/*
@@ -231,15 +231,37 @@ If BIOS sets carry flag or do not return SMAP signature, kernel gives up.
 }
 ```
 
-#### detect\_memory\_e801()
+#### detect\_memory\_e801(), detect\_memory\_88()
 
+When are these used? Is e820 insufficient?
 
+### go\_to\_protected\_mode()
 
-#### detect\_memory\_88()
+```c
+/*
+ * Actual invocation sequence
+ */
+void go_to_protected_mode(void)
+{
+	/* Hook before leaving real mode, also disables interrupts */
+	realmode_switch_hook();
 
+	/* Enable the A20 gate */
+	if (enable_a20()) {
+		puts("A20 gate not responding, unable to boot...\n");
+		die();
+	}
 
+	/* Reset coprocessor (IGNNE#) */
+	reset_coprocessor();
 
-#### go\_to\_protected\_mode()
+	/* Mask all interrupts in the PIC */
+	mask_all_interrupts();
 
+	/* Actual transition to protected mode... */
+	setup_idt();
+	setup_gdt();
+	protected_mode_jump(boot_params.hdr.code32_start,
+			    (u32)&boot_params + (ds() << 4));
 
-
+```

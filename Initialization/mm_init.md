@@ -1,15 +1,16 @@
-# Initialization
+# start\_kernel()
 
-This page describes how memory is initialized in x86_64. This is highly architecture-specific.    
-And there are tons of initializations codes like ACPI, SMP, tracing, cgroups, ACPI, ... etc.  
-We'll get buried in the code if we analyze all of them. I tried to explain what is important in terms of memory management.  
+## Initialization
 
-In this page, I do not explain all details here. Later we'll take a look at memblock, buddy, slab, vmalloc, ... etc.  
+This page describes how memory is initialized in x86\_64. This is highly architecture-specific.\
+And there are tons of initializations codes like ACPI, SMP, tracing, cgroups, ACPI, ... etc.\
+We'll get buried in the code if we analyze all of them. I tried to explain what is important in terms of memory management.
 
-## start_kernel()
+In this page, I do not explain all details here. Later we'll take a look at memblock, buddy, slab, vmalloc, ... etc.
 
-start_kernel() in init/main.c is an entrypoint to kernel. every architecture-specific initialization code jumps to start_kernel().  
-Below is **simplified overview** of start_kernel().  
+### start\_kernel()
+
+start\_kernel() in init/main.c is an entrypoint to kernel. every architecture-specific initialization code jumps to start\_kernel(). Below is **simplified overview** of start\_kernel():
 
 ```c
 asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
@@ -71,9 +72,7 @@ asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
 }
 ```
 
-## mm_init()
-
-
+### mm\_init()
 
 ```c
 /*
@@ -91,23 +90,23 @@ static void __init mm_init(void)
         report_meminit();
         stack_depot_early_init();
 ```
-Above are initialization codes that needs large pages. Only memblock can serve allocations bigger than MAX_ORDER.  
+
+Above are initialization codes that needs large pages. Only memblock can serve allocations bigger than MAX\_ORDER.
 
 ```c
         mem_init();
         mem_init_print_info();
 ```
 
-Before mem_init(), kernel uses memblock to allocate memory in early boot process. after mem_init(), memblock returns all available memory to buddy allocator.  
+Before mem\_init(), kernel uses memblock to allocate memory in early boot process. after mem\_init(), memblock returns all available memory to buddy allocator.
 
 ```c
         kmem_cache_init();
 ```
 
-slab allocator is initialized just after buddy allocator became available.  
+slab allocator is initialized just after buddy allocator became available.
 
 ```c
-
 	/*
 	 * page_owner must be initialized after buddy is ready, and also after
 	 * slab is ready so that stack_depot_init() works properly
@@ -125,11 +124,11 @@ slab allocator is initialized just after buddy allocator became available.
 }
 ```
 
-Some subsystems that requires slab are initialized after kmem_cache_init(), including vmalloc subsystem.
+Some subsystems that requires slab are initialized after kmem\_cache\_init(), including vmalloc subsystem.
 
-# Summary
+## Summary
 
-1) start_kernel() is entrypoint to kernel after architecture-specific initialization code.
-2) page tables, memblock are initialized in setup_arch().
-3) Linux uses interleave NUMA policy at initialization and than change to default policy.  
-4) in mm_init(), memblock returns all available memory to buddy allocator. And then slab and vmalloc is initialized.  
+1. start\_kernel() is entrypoint to kernel after architecture-specific initialization code.
+2. page tables, memblock are initialized in setup\_arch().
+3. Linux uses interleave NUMA policy at initialization and than change to default policy.
+4. in mm\_init(), memblock returns all available memory to buddy allocator. And then slab and vmalloc is initialized.

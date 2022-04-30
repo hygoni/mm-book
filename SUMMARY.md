@@ -13,5 +13,6 @@
   * [Boot Loader](summary/initialization/boot-loader.md)
   * [Entrypoint to kernel](summary/initialization/entrypoint-to-kernel.md)
   * [main()](summary/initialization/main.md)
+  * [a big hole in the middle](summary/initialization/a-big-hole-in-the-middle.md)
   * [start\_kernel()](Initialization/mm\_init.md)
   * [setup\_arch()](Initialization/setup\_arch.md)
