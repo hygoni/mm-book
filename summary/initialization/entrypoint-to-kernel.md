@@ -29,11 +29,15 @@ The entrypoint of kernel is [\_start ](https://elixir.bootlin.com/linux/v5.17.3/
               ~                          ~
 ```
 
-The \_start symbol is in the middle of kernel header, at address X + 0x200. Note that the \_start symbol is not the beginning of boot sector. That is because it used to be a bootable image as itself in early days of linux. Now that we use external boot loader, the boot loader should jump to second sector just after boot sector.
+and \_start symbol is in the middle of kernel header, at address X + 0x200. Note that the \_start symbol is not the beginning of boot sector. That is because it used to be a bootable image as itself in early days of linux. Now we use external boot loader, the boot loader should jump to second sector just after boot sector,.
 
-Let's take a brief look at memory layout. at the start address of kernel image (X) There is an ancient boot loader which linux used at the early days. And then the kernel header starts at X+001F1. [The kernel header](https://www.kernel.org/doc/html/latest/x86/boot.html#the-real-mode-kernel-header) is information needed for boot and boot loader should provide it.
 
-And then there are some sections including text, data, bss of kernel setup. One notable section is .signature. This stores a magic value, which is required by boot protocol. if the the signature is not set, the kernel stops to boot.
+
+According to boot protocol, There are some information that boot loader should provide: [the kernel header](https://www.kernel.org/doc/html/latest/x86/boot.html#the-real-mode-kernel-header) header.  that is needed for booting. and then we have .data and .bss section, where initialized and uninitialized global variables reside at. (and there are some more sections).
+
+
+
+One notable section is .signature. This stores a magic value, which is required by boot protocol. if the the signature is not set, the kernel stops to boot.
 
 ### start\_of\_setup
 
@@ -41,7 +45,9 @@ This summarizes [start\_of\_setup](https://elixir.bootlin.com/linux/v5.17.3/C/id
 
 #### Stack Initialization
 
-Before jumping to C code, we need to setup stack and initialize BSS section. It's boot loader's job to initialize stack properly and pass pointer. The boot loader also passes **heap\_end\_ptr** parameter using kernel header so that kernel can setup its heap area. But ancient boot loader may pass invalid stack segment register (%ds != %ss). In that case, we initialize our own stack and check if we can use heap.
+Before jumping to C code, we need to setup stack and initialize BSS section. It's boot loader's job to initialize stack properly and pass pointer to end of heap by **heap\_end\_ptr** boot parameter. But ancient boot loader may pass invalid stack segment register (%ds != %ss). In that case, we initialize our own stack.
+
+
 
 After setting up stack, it initialize BSS segment to zero and finally, call [main()](https://elixir.bootlin.com/linux/v5.17.3/source/arch/x86/boot/main.c#L134).
 

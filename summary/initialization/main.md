@@ -1,6 +1,6 @@
 # main()
 
-### main()
+## main()
 
 In previous page, we took a look at header.S. It prepares environment for C code (stack, bss) and then calls [main()](https://elixir.bootlin.com/linux/v5.17.3/source/arch/x86/boot/main.c#L134). We're not going to dig into every details of main(). We'll focus on what is important for memory management.
 
@@ -16,46 +16,23 @@ void main(void)
 		puts("early console in setup code\n");
 
 	/* End of heap check */
-	init_heap()/* Make sure we have all the proper CPU support */
-		if (validate_cpu()) {
-		puts("Unable to boot - please use a kernel appropriate "
-		     "for your CPU.\n");
-		die();
-	}
-
-	/* Tell the BIOS what CPU mode we intend to run in. */
-	set_bios_mode();
+	init_heap();
+	
+	[...]
 
 	/* Detect memory layout */
 	detect_memory();
 
-	/* Set keyboard repeat rate (why?) and query the lock flags */
-	keyboard_init();
-
-	/* Query Intel SpeedStep (IST) information */
-	query_ist();
-
-	/* Query APM information */
-#if defined(CONFIG_APM) || defined(CONFIG_APM_MODULE)
-	query_apm_bios();
-#endif
-
-	/* Query EDD information */
-#if defined(CONFIG_EDD) || defined(CONFIG_EDD_MODULE)
-	query_edd();
-#endif
-
-	/* Set the video mode */
-	set_video();
+	[...]
 
 	/* Do the last things and invoke protected mode */
 	go_to_protected_mode();
 }
 ```
 
-#### init\_heap()
+### Heap Initialization
 
-In header.S, we did not initialize heap yet. We only have stack. in init\__heap(), we use heap when boot loader provided heap\_end\_ptr._
+In header.S, we did not initialize heap yet. We only have stack. in init\_heap()_, we use heap when boot loader provided heap\_end\_ptr._
 
 ```c
 static void init_heap(void)
@@ -128,9 +105,9 @@ static inline bool heap_free(size_t n)
 }
 ```
 
-#### detect\_memory()
+### detect\_memory()
 
-To detect memory available for system, x86 asks BIOS for range of available memory. Linux uses E820, E801, and 88 to detect available memory.
+The way to detect available memory highly depends on architectures. In x86, kernel asks BIOS for range of available memory. Linux uses E820, E801, and 88 to detect available memory.
 
 ```c
 void detect_memory(void)
@@ -143,13 +120,30 @@ void detect_memory(void)
 }
 ```
 
-#### detect\_memory\_e820
+### detect\_memory\_e820()
 
-When using functions of BIOS, we invoke interrupt using [INT instruction](https://en.wikipedia.org/wiki/BIOS\_interrupt\_call#Interrupt\_table). BIOS serves various functions and we should choose and interrupt number and value of AX register to call a function of BIOS. the name _E820_ comes from the value of AX for the function.
+When using functions provided by BIOS, we invoke interrupt using [INT instruction](https://en.wikipedia.org/wiki/BIOS\_interrupt\_call#Interrupt\_table). BIOS serves various functions and we should choose and interrupt number and value of AX register to call a function of BIOS. the name _E820_ comes from the value of AX for the function.
 
 E820 is used to detect ranges of available memory of  the system. it can detect memory that can be addressed using **64bits** (So it can detect memory above 4G). All of modern x86 computers (since 2002) implements this function.
 
 The specification can be found at [INT 15h, AX=E820h - Query System Address Map](http://www.uruk.org/orig-grub/mem64mb.html).
+
+#### struct boot\_e820\_entry
+
+In x86, the system memory is not a big and single continuous area. it is composed of small and big chunks of memory. each chunk is represented by **struct boot\_e820\_entry**
+
+```c
+/*
+ * The E820 memory region entry of the boot protocol ABI:
+ */
+struct boot_e820_entry {
+	__u64 addr;
+	__u64 size;
+	__u32 type;
+} __attribute__((packed));
+```
+
+#### detect\_memory\_e820()
 
 ```c
 #define SMAP	0x534d4150	/* ASCII "SMAP" */
@@ -160,13 +154,27 @@ static void detect_memory_e820(void)
 	struct biosregs ireg, oreg;
 	struct boot_e820_entry *desc = boot_params.e820_table;
 	static struct boot_e820_entry buf; /* static so it is zeroed */
+```
 
+The memory range described by e820 is saved in boot\_params.e820\_table. Kernel initializes its direct map and passes memory to memblock (early memory allocator) according to this information.
+
+```c
 	initregs(&ireg);
 	ireg.ax  = 0xe820;
 	ireg.cx  = sizeof(buf);
 	ireg.edx = SMAP;
 	ireg.di  = (size_t)&buf;
+```
 
+It first sets registers (See [the specifiction](http://www.uruk.org/orig-grub/mem64mb.html)):
+
+* AX is the function code E820
+* DI is pointer to buffer.
+* CX is size of buffer.
+* DX is signature 'SMAP', which means the kernel wants information about memory to be returned in the buffer.
+* BX is zero, which means it's first iteration. after first iteration, it is set to the value previously returned by this function.
+
+```c
 	/*
 	 * Note: at least one BIOS is known which assumes that the
 	 * buffer pointed to by one e820 call is the same one as
@@ -184,7 +192,16 @@ static void detect_memory_e820(void)
 	do {
 		intcall(0x15, &ireg, &oreg);
 		ireg.ebx = oreg.ebx; /* for next iteration... */
+```
 
+After the call, BIOS returns:
+
+* EAX is 'SMAP'
+* DI is the buffer we passed
+* CX is number of bytes consumed by BIOS
+* EBX the 'continuation value' that kernel should pass in next iteration.
+
+```c
 		/* BIOSes which terminate the chain with CF = 1 as opposed
 		   to %ebx = 0 don't always report the SMAP signature on
 		   the final, failing, probe. */
@@ -200,6 +217,11 @@ static void detect_memory_e820(void)
 			count = 0;
 			break;
 		}
+```
+
+If BIOS sets carry flag or do not return SMAP signature, kernel gives up.
+
+```c
 
 		*desc++ = buf;
 		count++;

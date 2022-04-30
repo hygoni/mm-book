@@ -1,6 +1,6 @@
 # Boot Loader
 
-When you turn on x86 computer, the first instruction executed is in [reset vector](https://en.wikipedia.org/wiki/Reset\_vector), which is located at FFFFFFF0h (16 bytes below 4 GB). [\[link\]](https://stackoverflow.com/questions/9210296/software-initialization-code-at-0xfffffff0h) The address of reset vector does not belong to RAM, but  it is hardwired to ROM or flash memory. When CPU starts executing instructions in reset vector, the firmware called [BIOS ](https://en.wikipedia.org/wiki/BIOS)is running. The job of BIOS is to test and initialize hardware (including CPU and RAM) and to load boot loader.
+When you turn on x86 computer, the first instruction executed is in [reset vector](https://en.wikipedia.org/wiki/Reset\_vector), which is located at FFFFFFF0h (16 bytes below 4 GB). [\[link\]](https://stackoverflow.com/questions/9210296/software-initialization-code-at-0xfffffff0h) The address of reset vector does not belong to RAM, but  it is hardwired to ROM, or flash memory. When CPU starts executing instructions in reset vector, the firmware called [BIOS ](https://en.wikipedia.org/wiki/BIOS)is running. The job of BIOS is to test and initialize hardwares (including RAM) and to load boot loader.
 
 
 
@@ -8,7 +8,7 @@ When you turn on x86 computer, the first instruction executed is in [reset vecto
 
 ### Memory Layout
 
-Below is an example of memory layout for modern bzImage kernel with boot protocol version >= 2.02.
+Below is memory layout for modern bzImage kernel with boot protocol version >= 2.02.
 
 ```
               ~                        ~
