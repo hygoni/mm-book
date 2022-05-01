@@ -18,5 +18,5 @@
   * [page table initialization](summary/initialization/page-table-initialization.md)
   * [node and zone](summary/initialization/node-and-zone.md)
   * [mm\_init()](summary/initialization/mm\_init.md)
-  * [start\_kernel()](summary/initialization/mm\_init-1.md)
+  * [start\_kernel()](Initialization/mm\_init.md)
   * [setup\_arch()](Initialization/setup\_arch.md)
